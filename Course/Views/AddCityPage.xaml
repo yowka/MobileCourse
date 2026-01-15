@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Course.Views.AddCityPage"
+             Title="Добавить город">
+
+    <StackLayout Padding="20" Spacing="10">
+
+        <!-- Поиск -->
+        <Entry x:Name="SearchEntry" 
+               Placeholder="Введите город..."
+               Text="{Binding SearchText}"
+               HeightRequest="50"/>
+
+        <Button Text="Найти" 
+                Clicked="OnSearchClicked"
+                HeightRequest="50"/>
+
+        <!-- Список найденных городов -->
+        <ListView x:Name="CitiesListView"
+                  ItemsSource="{Binding FoundCities}"
+                  ItemTapped="OnCityTapped">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextCell Text="{Binding Name}" 
+                              Detail="{Binding Country}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsRunning="False"
+                           IsVisible="False"/>
+
+    </StackLayout>
+
+</ContentPage>

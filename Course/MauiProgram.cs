@@ -1,0 +1,29 @@
+﻿using Course.Services;
+using Course.ViewModels;
+using Course.Views;
+
+namespace Course;
+
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
+        
+        // Регистрируем сервисы
+        builder.Services.AddSingleton<IWeatherService, WeatherService>();
+        
+        // Регистрируем ViewModels и Pages
+        builder.Services.AddSingleton<MainViewModel>();
+        builder.Services.AddSingleton<MainPage>();
+        
+        return builder.Build();
+    }
+}
