@@ -2,36 +2,99 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Course.Views.AddCityPage"
-             Title="Добавить город">
+             Title="Поиск города">
 
-    <StackLayout Padding="20" Spacing="10">
+    <ContentPage.Resources>
+        <Style TargetType="Entry">
+            <Setter Property="HeightRequest" Value="50"/>
+            <Setter Property="PlaceholderColor" Value="Gray"/>
+            <Setter Property="BackgroundColor" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
 
-        <!-- Поиск -->
-        <Entry x:Name="SearchEntry" 
-               Placeholder="Введите город..."
-               Text="{Binding SearchText}"
-               HeightRequest="50"/>
+        <Style TargetType="Button">
+            <Setter Property="HeightRequest" Value="50"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
 
-        <Button Text="Найти" 
-                Clicked="OnSearchClicked"
-                HeightRequest="50"/>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#2196F3"/>
+            <Setter Property="TextColor" Value="White"/>
+        </Style>
 
-        <!-- Список найденных городов -->
-        <ListView x:Name="CitiesListView"
-                  ItemsSource="{Binding FoundCities}"
-                  ItemTapped="OnCityTapped">
+        <Style x:Key="SuccessButton" TargetType="Button">
+            <Setter Property="WidthRequest" Value="80"/>
+            <Setter Property="HeightRequest" Value="35"/>
+            <Setter Property="BackgroundColor" Value="#4CAF50"/>
+            <Setter Property="TextColor" Value="White"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+
+        <Style x:Key="BackButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="LightGray"/>
+            <Setter Property="TextColor" Value="Black"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <StackLayout Padding="20" Spacing="15">
+
+        <!-- Поле поиска -->
+        <Border StrokeShape="RoundRectangle 10"
+                Stroke="Transparent"
+                BackgroundColor="White">
+            <Entry x:Name="SearchEntry"
+                   Placeholder="Введите город..."/>
+        </Border>
+
+        <!-- Кнопка поиска -->
+        <Button x:Name="SearchButton"
+                Style="{StaticResource PrimaryButton}"
+                Text="Найти"
+                Clicked="OnSearchClicked"/>
+
+        <!-- Список городов -->
+        <ListView x:Name="CitiesList"
+                  HasUnevenRows="True"
+                  SeparatorVisibility="None">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <TextCell Text="{Binding Name}" 
-                              Detail="{Binding Country}"/>
+                    <ViewCell>
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="Transparent"
+                                BackgroundColor="White"
+                                Margin="0,5"
+                                Padding="15">
+                            <Grid ColumnDefinitions="*, Auto" 
+                                  ColumnSpacing="10">
+
+                                <!-- Информация о городе -->
+                                <StackLayout Grid.Column="0">
+                                    <Label FontSize="16"
+                                           FontAttributes="Bold"
+                                           Text="{Binding Name}"/>
+                                    <Label FontSize="14"
+                                           TextColor="Gray"
+                                           Text="{Binding Country}"/>
+                                </StackLayout>
+
+                                <!-- Кнопка выбора -->
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource SuccessButton}"
+                                        Text="Выбрать"
+                                        CommandParameter="{Binding .}"
+                                        Clicked="OnCitySelected"/>
+                            </Grid>
+                        </Border>
+                    </ViewCell>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
-        <ActivityIndicator x:Name="LoadingIndicator"
-                           IsRunning="False"
-                           IsVisible="False"/>
+        <!-- Кнопка назад -->
+        <Button Style="{StaticResource BackButton}"
+                Text="Назад"
+                Clicked="OnBackClicked"/>
 
     </StackLayout>
-
 </ContentPage>

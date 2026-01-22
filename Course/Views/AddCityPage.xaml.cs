@@ -1,36 +1,45 @@
 using Course.Models;
-using Course.ViewModels;
-using Microsoft.Maui.Controls;
+using Course.Services;
+using System.Text.Json;
 
 namespace Course.Views
 {
     public partial class AddCityPage : ContentPage
     {
-        private MainViewModel _viewModel; // Используем ту же ViewModel
+        private WeatherService _weatherService = new();
 
-        public AddCityPage(MainViewModel viewModel)
+        // УБЕРИТЕ ПАРАМЕТР MainViewModel из конструктора
+        public AddCityPage()
         {
             InitializeComponent();
-            _viewModel = viewModel;
-            BindingContext = _viewModel;
         }
 
         private async void OnSearchClicked(object sender, EventArgs e)
         {
-            // Поиск городов нужно сделать отдельным сервисом
-            // Пока оставим пустым или добавь отдельную VM для поиска
+            var cityName = SearchEntry.Text;
+            if (!string.IsNullOrWhiteSpace(cityName))
+            {
+                var cities = await _weatherService.SearchCitiesAsync(cityName);
+                CitiesList.ItemsSource = cities;
+            }
         }
 
-        private async void OnCityTapped(object sender, ItemTappedEventArgs e)
+        private async void OnCitySelected(object sender, EventArgs e)
         {
-            if (e.Item is CitySearchResponse city)
+            if (sender is Button button && button.CommandParameter is CitySearchResponse city)
             {
                 // Сохраняем город
-                _viewModel.SaveCity(city);
+                var json = JsonSerializer.Serialize(city);
+                Preferences.Set("current_city", json);
 
-                // Закрываем страницу
+                // Закрываем поиск
                 await Navigation.PopModalAsync();
             }
+        }
+
+        private async void OnBackClicked(object sender, EventArgs e)
+        {
+            await Navigation.PopModalAsync();
         }
     }
 }

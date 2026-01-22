@@ -1,74 +1,91 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Course.Models;
-
-public class CurrentWeatherResponse
+namespace Course.Models
 {
-    [JsonPropertyName("main")]
-    public MainData? Main { get; set; }
+    public class CurrentWeatherResponse
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
 
-    [JsonPropertyName("weather")]
-    public List<WeatherInfo>? Weather { get; set; }
+        [JsonPropertyName("main")]
+        public CurrentWeatherMain Main { get; set; } = new();
 
-    [JsonPropertyName("wind")]
-    public WindData? Wind { get; set; }
+        [JsonPropertyName("weather")]
+        public List<CurrentWeatherInfo> Weather { get; set; } = new();
 
-    [JsonPropertyName("dt")]
-    public long Timestamp { get; set; }
+        [JsonPropertyName("wind")]
+        public CurrentWeatherWind Wind { get; set; } = new();
 
-    [JsonPropertyName("name")]
-    public string? CityName { get; set; }
+        [JsonPropertyName("clouds")]
+        public CurrentWeatherClouds Clouds { get; set; } = new();
 
-    // ВОТ ЭТА СТРОКА ДОЛЖНА БЫТЬ:
-    [JsonPropertyName("sys")]
-    public SysData? Sys { get; set; }
-}
+        [JsonPropertyName("sys")]
+        public CurrentWeatherSys Sys { get; set; } = new();
+    }
 
-public class MainData
-{
-    [JsonPropertyName("temp")]
-    public double Temperature { get; set; }
+    public class CurrentWeatherMain
+    {
+        [JsonPropertyName("temp")]
+        public double Temp { get; set; }
 
-    [JsonPropertyName("feels_like")]
-    public double FeelsLike { get; set; }
+        [JsonPropertyName("feels_like")]
+        public double Feels_like { get; set; }
 
-    [JsonPropertyName("humidity")]
-    public int Humidity { get; set; }
+        [JsonPropertyName("temp_min")]
+        public double Temp_min { get; set; }
 
-    [JsonPropertyName("pressure")]
-    public int Pressure { get; set; }
-}
+        [JsonPropertyName("temp_max")]
+        public double Temp_max { get; set; }
 
-public class WeatherInfo
-{
-    [JsonPropertyName("main")]
-    public string? Main { get; set; }
+        [JsonPropertyName("pressure")]
+        public int Pressure { get; set; }
 
-    [JsonPropertyName("description")]
-    public string? Description { get; set; }
+        [JsonPropertyName("humidity")]
+        public int Humidity { get; set; }
+    }
 
-    [JsonPropertyName("icon")]
-    public string? Icon { get; set; }
-}
+    public class CurrentWeatherInfo
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
 
-public class WindData
-{
-    [JsonPropertyName("speed")]
-    public double Speed { get; set; }
+        [JsonPropertyName("main")]
+        public string Main { get; set; } = "";
 
-    [JsonPropertyName("deg")]
-    public int Direction { get; set; }
-}
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = "";
 
-// И ЭТОТ КЛАСС ТОЖЕ ДОЛЖЕН БЫТЬ:
-public class SysData
-{
-    [JsonPropertyName("sunrise")]
-    public long Sunrise { get; set; }
+        [JsonPropertyName("icon")]
+        public string Icon { get; set; } = "";
+    }
 
-    [JsonPropertyName("sunset")]
-    public long Sunset { get; set; }
+    public class CurrentWeatherWind
+    {
+        [JsonPropertyName("speed")]
+        public double Speed { get; set; }
 
-    [JsonPropertyName("country")]
-    public string? Country { get; set; }
+        [JsonPropertyName("deg")]
+        public int Deg { get; set; }
+
+        [JsonPropertyName("gust")]
+        public double Gust { get; set; }
+    }
+
+    public class CurrentWeatherClouds
+    {
+        [JsonPropertyName("all")]
+        public int All { get; set; }
+    }
+
+    public class CurrentWeatherSys
+    {
+        [JsonPropertyName("country")]
+        public string Country { get; set; } = "";
+
+        [JsonPropertyName("sunrise")]
+        public long Sunrise { get; set; }
+
+        [JsonPropertyName("sunset")]
+        public long Sunset { get; set; }
+    }
 }

@@ -1,132 +1,98 @@
 ﻿using Course.Models;
-using System.Diagnostics;
 using System.Text.Json;
 
-namespace Course.Services;
-
-public class WeatherService : IWeatherService
+namespace Course.Services
 {
-    private readonly HttpClient _httpClient;
-    private const string ApiKey = "13c8283217070e7b9f6d5de5946cae0f";
-    private const string BaseUrl = "http://api.openweathermap.org";
-
-    public WeatherService()
+    public class WeatherService : IWeatherService
     {
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri(BaseUrl);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "WeatherApp-MAUI");
-    }
+        private readonly HttpClient _httpClient;
+        private const string ApiKey = "13c8283217070e7b9f6d5de5946cae0f"; 
+        private const string BaseUrl = "https://api.openweathermap.org";
 
-    // Существующие методы
-    public async Task<List<CitySearchResponse>> SearchCitiesAsync(string cityName)
-    {
-        try
+        public WeatherService()
         {
-            var response = await _httpClient.GetAsync(
-                $"/geo/1.0/direct?q={Uri.EscapeDataString(cityName)}&limit=5&appid={ApiKey}"
-            );
+            _httpClient = new HttpClient();
+        }
 
-            if (response.IsSuccessStatusCode)
+        public async Task<CurrentWeatherResponse> GetCurrentWeatherAsync(double lat, double lon)
+        {
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
+                var url = $"{BaseUrl}/data/2.5/weather?lat={lat}&lon={lon}&appid={ApiKey}&units=metric&lang=ru";
+                Console.WriteLine($"Запрос погоды: {url}");
+
+                var response = await _httpClient.GetStringAsync(url);
+                Console.WriteLine($"Ответ API: {response}");
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
 
-                var cities = JsonSerializer.Deserialize<List<CitySearchResponse>>(json, options);
-                return cities ?? new List<CitySearchResponse>();
+                var result = JsonSerializer.Deserialize<CurrentWeatherResponse>(response, options);
+
+                Console.WriteLine($"Десериализовано: Name={result?.Name}, Temp={result?.Main?.Temp}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в GetCurrentWeatherAsync: {ex.Message}");
+                return null;
             }
         }
-        catch (Exception ex)
+
+        public async Task<List<CitySearchResponse>> SearchCitiesAsync(string query)
         {
-            Debug.WriteLine($"Ошибка поиска: {ex.Message}");
-        }
-
-        return new List<CitySearchResponse>();
-    }
-
-    public async Task<CurrentWeatherResponse> GetCurrentWeatherAsync(double lat, double lon)
-    {
-        try
-        {
-            var response = await _httpClient.GetAsync(
-                $"/data/2.5/weather?lat={lat}&lon={lon}&appid={ApiKey}&units=metric&lang=ru"
-            );
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
+                var url = $"{BaseUrl}/geo/1.0/direct?q={query}&limit=10&appid={ApiKey}";
+                var response = await _httpClient.GetStringAsync(url);
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
 
-                return JsonSerializer.Deserialize<CurrentWeatherResponse>(json, options);
+                return JsonSerializer.Deserialize<List<CitySearchResponse>>(response, options) ?? new List<CitySearchResponse>();
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Ошибка погоды: {ex.Message}");
-        }
-
-        return null;
-    }
-
-    // НОВЫЙ МЕТОД: Прогноз на 5 дней (с интервалом 3 часа, всего 40 записей)
-    public async Task<ForecastResponse> Get5DayForecastAsync(double lat, double lon)
-    {
-        try
-        {
-            var response = await _httpClient.GetAsync(
-                $"/data/2.5/forecast?lat={lat}&lon={lon}&appid={ApiKey}&units=metric&lang=ru&cnt=40"
-            );
-
-            if (response.IsSuccessStatusCode)
+            catch
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                return JsonSerializer.Deserialize<ForecastResponse>(json, options);
+                return new List<CitySearchResponse>();
             }
         }
-        catch (Exception ex)
+        public async Task<List<ForecastItem>> GetHourly24ForecastAsync(double lat, double lon)
         {
-            Debug.WriteLine($"Ошибка прогноза: {ex.Message}");
+            var forecast = await GetForecastAsync(lat, lon);
+            return forecast?.List.Take(8).ToList() ?? new List<ForecastItem>();
         }
 
-        return null;
-    }
-
-    // НОВЫЙ МЕТОД: Прогноз на 24 часа (первые 8 записей)
-    public async Task<List<ForecastItem>> Get24HourForecastAsync(double lat, double lon)
-    {
-        try
+        public async Task<List<ForecastItem>> GetDaily5ForecastAsync(double lat, double lon)
         {
-            var response = await _httpClient.GetAsync(
-                $"/data/2.5/forecast?lat={lat}&lon={lon}&appid={ApiKey}&units=metric&lang=ru&cnt=8"
-            );
+            var forecast = await GetForecastAsync(lat, lon);
+            if (forecast?.List == null) return new List<ForecastItem>();
 
-            if (response.IsSuccessStatusCode)
+            var today = DateTime.UtcNow.Date;
+            return forecast.List
+                .Where(item => DateTimeOffset.FromUnixTimeSeconds(item.Timestamp).UtcDateTime.Date != today)
+                .GroupBy(item => DateTimeOffset.FromUnixTimeSeconds(item.Timestamp).UtcDateTime.Date)
+                .Take(5)
+                .Select(g => g.First())
+                .ToList();
+        }
+        public async Task<ForecastResponse> GetForecastAsync(double lat, double lon)
+        {
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
+                var url = $"{BaseUrl}/data/2.5/forecast?lat={lat}&lon={lon}&appid={ApiKey}&units=metric&lang=ru&cnt=8";
+                var response = await _httpClient.GetStringAsync(url);
 
-                var forecast = JsonSerializer.Deserialize<ForecastResponse>(json, options);
-                return forecast?.List?.Take(8).ToList() ?? new List<ForecastItem>();
+                return JsonSerializer.Deserialize<ForecastResponse>(response);
+            }
+            catch
+            {
+                return null;
             }
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Ошибка прогноза 24ч: {ex.Message}");
-        }
-
-        return new List<ForecastItem>();
     }
 }

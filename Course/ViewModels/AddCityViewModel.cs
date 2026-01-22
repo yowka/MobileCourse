@@ -27,10 +27,6 @@ namespace Course.ViewModels
             }
         }
 
-        public async Task SaveCity(CitySearchResponse city)
-        {
-            // Сохраняем город в Preferences или базу данных
-            // Preferences.Set("saved_cities", ...);
-        }
+        
     }
 }
