@@ -6,7 +6,7 @@ namespace Course.Services
     public class WeatherService : IWeatherService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiKey = "13c8283217070e7b9f6d5de5946cae0f"; 
+        private const string ApiKey = "f554b93c8b7cb90e4bf0a8e5a346dd2b"; 
         private const string BaseUrl = "https://api.openweathermap.org";
 
         public WeatherService()
