@@ -39,7 +39,6 @@
 
     <StackLayout Padding="20" Spacing="15">
 
-        <!-- Поле поиска -->
         <Border StrokeShape="RoundRectangle 10"
                 Stroke="Transparent"
                 BackgroundColor="White">
@@ -47,13 +46,11 @@
                    Placeholder="Введите город..."/>
         </Border>
 
-        <!-- Кнопка поиска -->
         <Button x:Name="SearchButton"
                 Style="{StaticResource PrimaryButton}"
                 Text="Найти"
                 Clicked="OnSearchClicked"/>
 
-        <!-- Список городов -->
         <ListView x:Name="CitiesList"
                   HasUnevenRows="True"
                   SeparatorVisibility="None">
@@ -68,7 +65,6 @@
                             <Grid ColumnDefinitions="*, Auto" 
                                   ColumnSpacing="10">
 
-                                <!-- Информация о городе -->
                                 <StackLayout Grid.Column="0">
                                     <Label FontSize="16"
                                            FontAttributes="Bold"
@@ -78,12 +74,14 @@
                                            Text="{Binding Country}"/>
                                 </StackLayout>
 
-                                <!-- Кнопка выбора -->
-                                <Button Grid.Column="1"
-                                        Style="{StaticResource SuccessButton}"
-                                        Text="Выбрать"
-                                        CommandParameter="{Binding .}"
-                                        Clicked="OnCitySelected"/>
+                                <Button 
+                                    Padding="8"
+                                    Grid.Column="1"
+                                    Style="{StaticResource SuccessButton}"
+                                    Text="Выбрать"
+                                    CommandParameter="{Binding .}"
+                                    Clicked="OnCitySelected"
+                                />
                             </Grid>
                         </Border>
                     </ViewCell>
@@ -91,7 +89,6 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <!-- Кнопка назад -->
         <Button Style="{StaticResource BackButton}"
                 Text="Назад"
                 Clicked="OnBackClicked"/>

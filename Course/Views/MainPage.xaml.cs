@@ -27,6 +27,15 @@ public partial class MainPage : ContentPage
         
     _ = LoadWeather(); 
     }
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await LoadWeather();
+    }
+    private async void OnAddCityClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushModalAsync(new AddCityPage());
+    }
 
     private async Task LoadWeather()
     {

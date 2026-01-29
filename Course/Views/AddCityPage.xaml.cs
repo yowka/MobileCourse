@@ -8,7 +8,6 @@ namespace Course.Views
     {
         private WeatherService _weatherService = new();
 
-        // УБЕРИТЕ ПАРАМЕТР MainViewModel из конструктора
         public AddCityPage()
         {
             InitializeComponent();
@@ -28,11 +27,9 @@ namespace Course.Views
         {
             if (sender is Button button && button.CommandParameter is CitySearchResponse city)
             {
-                // Сохраняем город
                 var json = JsonSerializer.Serialize(city);
                 Preferences.Set("current_city", json);
 
-                // Закрываем поиск
                 await Navigation.PopModalAsync();
             }
         }
