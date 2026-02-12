@@ -25,12 +25,15 @@ namespace Course.Views
 
         private async void OnCitySelected(object sender, EventArgs e)
         {
-            if (sender is Button button && button.CommandParameter is CitySearchResponse city)
+            if (sender is Button button)
             {
-                var json = JsonSerializer.Serialize(city);
-                Preferences.Set("current_city", json);
-
-                await Navigation.PopModalAsync();
+                var city = button.BindingContext as CitySearchResponse;
+                if (city != null)
+                {
+                    var json = JsonSerializer.Serialize(city);
+                    Preferences.Set("current_city", json);
+                    await Navigation.PopModalAsync();
+                }
             }
         }
 

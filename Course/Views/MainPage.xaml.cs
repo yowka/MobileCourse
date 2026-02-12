@@ -101,8 +101,13 @@ public partial class MainPage : ContentPage, INotifyPropertyChanged
             var hourlyList = await _weatherService.GetHourly24ForecastAsync(city.Latitude, city.Longitude);
             var dailyList = await _weatherService.GetDaily5ForecastAsync(city.Latitude, city.Longitude);
 
-            Hourly24 = new ObservableCollection<ForecastItem>(hourlyList);
-            Daily5 = new ObservableCollection<ForecastItem>(dailyList);
+            Hourly24.Clear();
+            foreach (var item in hourlyList)
+                Hourly24.Add(item);
+
+            Daily5.Clear();
+            foreach (var item in dailyList)
+                Daily5.Add(item);
         }
         catch (Exception ex)
         {

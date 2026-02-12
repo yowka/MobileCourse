@@ -79,9 +79,8 @@
                                     Grid.Column="1"
                                     Style="{StaticResource SuccessButton}"
                                     Text="Выбрать"
-                                    CommandParameter="{Binding .}"
                                     Clicked="OnCitySelected"
-                                />
+                                    CommandParameter="{Binding .}" />
                             </Grid>
                         </Border>
                     </ViewCell>
