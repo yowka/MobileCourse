@@ -7,7 +7,7 @@ namespace Course
         public App()
         {
             InitializeComponent();
-            MainPage = new NavigationPage(new MainPage());
+            MainPage = new SplashPage(); 
         }
     }
 }

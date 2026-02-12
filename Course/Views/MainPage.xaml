@@ -12,6 +12,28 @@
                 <Label Text="{Binding Temp, StringFormat='{0}°C', Source={x:Reference Page}}" FontSize="64" />
                 <Label Text="{Binding Description, Source={x:Reference Page}}" FontSize="20" />
 
+
+                <Label Text="Прогноз на 5 дней" FontSize="18" />
+
+                <CollectionView 
+                    ItemsSource="{Binding Daily5}"
+                    HeightRequest="80"
+                    ItemsLayout="HorizontalList">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <StackLayout Spacing="4" Padding="10,0" WidthRequest="90">
+                                <Label Text="{Binding DateTime, StringFormat='{0:ddd}'}" 
+                       HorizontalTextAlignment="Center" FontSize="18" />
+                                <Label Text="{Binding Main.Temperature, StringFormat='{0:F0}°'}" 
+                       HorizontalTextAlignment="Center" FontSize="16" FontAttributes="Bold" />
+                                <Label Text="{Binding Weather[0].Description}" 
+                       HorizontalTextAlignment="Center" FontSize="10" TextColor="Gray" 
+                       LineBreakMode="WordWrap" MaxLines="2" />
+                            </StackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
                 <Label Text="Прогноз на 24 часа" FontSize="18" />
 
                 <CollectionView 
@@ -22,9 +44,9 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <StackLayout Spacing="4" Padding="10,0" WidthRequest="70">
+                            <StackLayout Spacing="4" Padding="10,0" WidthRequest="100">
                                 <Label 
-                                    Text="{Binding Main.Temperature, StringFormat='{0}°'}"
+                                    Text="{Binding Main.Temperature, StringFormat='{0:F1}°'}"
                                     FontSize="16" 
                                     FontAttributes="Bold" 
                                     HorizontalTextAlignment="Center" />
@@ -62,18 +84,19 @@
         </ScrollView>
 
         <Button
-                Text="×"
-                FontSize="36"
-                WidthRequest="60"
-                HeightRequest="60"
-                CornerRadius="8"
-                BackgroundColor="White"
-                BorderColor="#CCCCCC"
-                BorderWidth="1"
-                HorizontalOptions="End"
-                VerticalOptions="Start"
-                Margin="0,50,20,0"
-                Padding="0"
-                Clicked="OnAddCityClicked" />
+            Text="+"
+            FontSize="40"
+            WidthRequest="60"
+            HeightRequest="60"
+            CornerRadius="8"
+            BackgroundColor="White"
+            BorderColor="gray"
+            BorderWidth="1"
+            HorizontalOptions="End"
+            VerticalOptions="Start"
+            Margin="0,50,20,0"
+            Padding="0"
+            TextColor="Black" 
+                    Clicked="OnAddCityClicked" />
     </Grid>
 </ContentPage>

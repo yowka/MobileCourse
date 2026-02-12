@@ -1,10 +1,13 @@
 using Course.Models;
 using Course.Services;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Course.Views;
 
-public partial class MainPage : ContentPage
+public partial class MainPage : ContentPage, INotifyPropertyChanged
 {
     private readonly WeatherService _weatherService = new();
 
@@ -19,22 +22,38 @@ public partial class MainPage : ContentPage
     public string Sunrise { get; set; } = "—";
     public string Sunset { get; set; } = "—";
 
-    public List<ForecastItem> Hourly24 { get; set; } = new();
-    public List<ForecastItem> Daily5 { get; set; } = new();
+    private ObservableCollection<ForecastItem> _hourly24 = new();
+    public ObservableCollection<ForecastItem> Hourly24
+    {
+        get => _hourly24;
+        set
+        {
+            _hourly24 = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private ObservableCollection<ForecastItem> _daily5 = new();
+    public ObservableCollection<ForecastItem> Daily5
+    {
+        get => _daily5;
+        set
+        {
+            _daily5 = value;
+            OnPropertyChanged();
+        }
+    }
+
     public MainPage()
     {
         InitializeComponent();
-        
-    _ = LoadWeather(); 
+        BindingContext = this; // Важно!
     }
+
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         await LoadWeather();
-    }
-    private async void OnAddCityClicked(object sender, EventArgs e)
-    {
-        await Navigation.PushModalAsync(new AddCityPage());
     }
 
     private async Task LoadWeather()
@@ -42,13 +61,14 @@ public partial class MainPage : ContentPage
         try
         {
             var cityJson = Preferences.Get("current_city", null);
-            if (string.IsNullOrEmpty(cityJson)) return;
+            if (string.IsNullOrEmpty(cityJson))
+            {
+                return;
+            }
 
             var city = JsonSerializer.Deserialize<CitySearchResponse>(cityJson);
-            var weatherService = new WeatherService();
 
-            // Текущая погода
-            var current = await weatherService.GetCurrentWeatherAsync(city.Latitude, city.Longitude);
+            var current = await _weatherService.GetCurrentWeatherAsync(city.Latitude, city.Longitude);
             if (current != null)
             {
                 City = current.Name;
@@ -78,16 +98,15 @@ public partial class MainPage : ContentPage
                 OnPropertyChanged(nameof(Sunset));
             }
 
-            // Прогнозы
-            Hourly24 = await weatherService.GetHourly24ForecastAsync(city.Latitude, city.Longitude);
-            Daily5 = await weatherService.GetDaily5ForecastAsync(city.Latitude, city.Longitude);
+            var hourlyList = await _weatherService.GetHourly24ForecastAsync(city.Latitude, city.Longitude);
+            var dailyList = await _weatherService.GetDaily5ForecastAsync(city.Latitude, city.Longitude);
 
-            OnPropertyChanged(nameof(Hourly24));
-            OnPropertyChanged(nameof(Daily5));
+            Hourly24 = new ObservableCollection<ForecastItem>(hourlyList);
+            Daily5 = new ObservableCollection<ForecastItem>(dailyList);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка: {ex.Message}");
+            await DisplayAlert("Ошибка", $"Не удалось загрузить погоду: {ex.Message}", "OK");
         }
     }
 
@@ -96,5 +115,15 @@ public partial class MainPage : ContentPage
         return DateTimeOffset.FromUnixTimeSeconds(unix).LocalDateTime.ToString("HH:mm");
     }
 
+    public event PropertyChangedEventHandler PropertyChanged;
 
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private async void OnAddCityClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushModalAsync(new AddCityPage());
+    }
 }
