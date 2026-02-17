@@ -18,10 +18,10 @@ namespace Course.Views
             WeatherIcon.Opacity = 0;
             WeatherIcon.Scale = 1;
 
-            await WeatherIcon.FadeTo(1, 1000, Easing.SinOut); 
+            await WeatherIcon.FadeTo(1, 800, Easing.SinOut); 
 
 
-            await Task.Delay(1000);
+            await Task.Delay(800);
 
             Application.Current.MainPage = new NavigationPage(new MainPage());
         }

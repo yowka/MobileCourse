@@ -81,30 +81,25 @@ namespace Course.Services
             }
         }
 
-        public async Task<List<ForecastItem>> GetHourly24ForecastAsync(double lat, double lon)
+        public async Task<(List<ForecastItem> Hourly, List<ForecastItem> Daily)> GetForecastsAsync(double lat, double lon)
         {
             var forecast = await GetForecastAsync(lat, lon);
             var list = forecast?.List;
-            if (list == null || !list.Any())
-                return new List<ForecastItem>();
 
-            return list.Take(8).ToList();
-        }
-
-        public async Task<List<ForecastItem>> GetDaily5ForecastAsync(double lat, double lon)
-        {
-            var forecast = await GetForecastAsync(lat, lon);
-            var list = forecast?.List;
             if (list == null || !list.Any())
-                return new List<ForecastItem>();
+                return (new List<ForecastItem>(), new List<ForecastItem>());
+
+            var hourly = list.Take(8).ToList();
 
             var today = DateTime.UtcNow.Date;
-            return list
-                .Where(item => DateTimeOffset.FromUnixTimeSeconds(item.Timestamp).UtcDateTime.Date != today)
-                .GroupBy(item => DateTimeOffset.FromUnixTimeSeconds(item.Timestamp).UtcDateTime.Date)
+            var daily = list
+                .Where(item => item.DateTime.Date != today)
+                .GroupBy(item => item.DateTime.Date)
                 .Take(5)
                 .Select(g => g.First())
                 .ToList();
+
+            return (hourly, daily);
         }
     }
 }

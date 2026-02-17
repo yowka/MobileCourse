@@ -17,10 +17,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
         
-        // Регистрируем сервисы
         builder.Services.AddSingleton<IWeatherService, WeatherService>();
-        
-        // Регистрируем ViewModels и Pages
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainPage>();
         

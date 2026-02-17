@@ -1,15 +1,33 @@
 ﻿using Course.Models;
 using Course.Services;
 using System.Text.Json;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Course.ViewModels
 {
-    public class MainViewModel
+    public class MainViewModel : INotifyPropertyChanged
     {
         private readonly IWeatherService _weatherService;
-        public CurrentWeatherResponse Weather { get; set; } = new();
+        private CurrentWeatherResponse _weather = new();
+
+        public CurrentWeatherResponse Weather
+        {
+            get => _weather;
+            set
+            {
+                _weather = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasWeather));
+                OnPropertyChanged(nameof(Temp));
+                OnPropertyChanged(nameof(TempDisplay));
+            }
+        }
 
         public bool HasWeather => Weather != null && !string.IsNullOrEmpty(Weather.Name);
+
+        public double Temp => Weather?.Main?.Temp ?? 0;
+        public string TempDisplay => Math.Round(Temp).ToString();
 
         public MainViewModel(IWeatherService weatherService)
         {
@@ -37,6 +55,12 @@ namespace Course.ViewModels
             {
                 Weather = new CurrentWeatherResponse();
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

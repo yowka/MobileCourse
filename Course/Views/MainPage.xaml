@@ -2,101 +2,224 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Course.Views.MainPage"
              Title="Погода"
-             x:Name="Page">
-
+             xmlns:converters="clr-namespace:Course"
+             x:Name="Page"
+             NavigationPage.HasNavigationBar="False"
+             >
+    <ContentPage.Resources>
+        <ResourceDictionary Source="/Styles/WeatherStyles.xaml"/>
+    </ContentPage.Resources>
     <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#2C3E6B" Offset="0.0"/>
+
+                <GradientStop Color="#26355A" Offset="0.3"/>
+                <GradientStop Color="#202C49" Offset="0.6"/>
+
+                <GradientStop Color="#1F243A" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="15">
 
-                <Label Text="{Binding City, Source={x:Reference Page}}" FontSize="28" />
-                <Label Text="{Binding Temp, StringFormat='{0}°C', Source={x:Reference Page}}" FontSize="64" />
+                <Grid ColumnDefinitions="*, Auto">
+                    <Label Text="{Binding City, Source={x:Reference Page}}" 
+                           FontSize="28"
+                           TextColor="White"
+                           Grid.Column="0"/>
+
+                    <Button Text="+"
+                            FontSize="24"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            CornerRadius="12"
+                            BackgroundColor="#14FFFFFF"
+                            BorderColor="#14FFFFFF"
+                            BorderWidth="2"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center"
+                            Grid.Column="1"
+                            Padding="0"
+                            TextColor="White"
+                            Clicked="OnAddCityClicked"/>
+                </Grid>
+                <Label Text="{Binding Temp, StringFormat='{0}°C', Source={x:Reference Page}}" FontSize="84" Margin="20"/>
                 <Label Text="{Binding Description, Source={x:Reference Page}}" FontSize="20" />
 
 
-                <Label Text="Прогноз на 5 дней" FontSize="18" />
+                <Border StrokeThickness="2"
+                        Stroke="#14FFFFFF"
+                        BackgroundColor="Transparent"
+                        Padding="15"
+                        Margin="0,5,0,10">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16"/>
+                    </Border.StrokeShape>
 
-                <CollectionView 
-                    ItemsSource="{Binding Daily5}"
-                    HeightRequest="80"
-                    ItemsLayout="HorizontalList">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Прогноз на 5 дней" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="White"/>
 
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <StackLayout Spacing="4" Padding="10,0" WidthRequest="90">
-                                <Label Text="{Binding DateTime, StringFormat='{0:ddd}'}" 
-                       HorizontalTextAlignment="Center" FontSize="18" />
-                                <Label Text="{Binding Main.Temperature, StringFormat='{0:F0}°'}" 
-                       HorizontalTextAlignment="Center" FontSize="16" FontAttributes="Bold" />
-                                <Label Text="{Binding Weather[0].Description}" 
-                       HorizontalTextAlignment="Center" FontSize="10" TextColor="Gray" 
-                       LineBreakMode="WordWrap" MaxLines="2" />
-                            </StackLayout>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-                <Label Text="Прогноз на 24 часа" FontSize="18" />
+                        <BoxView HeightRequest="2"
+                                 Color="#14FFFFFF"
+                                 Margin="-15,0,-15,0"/>
 
-                <CollectionView 
-                    ItemsSource="{Binding Hourly24, Source={x:Reference Page}}"
-                    HeightRequest="140"
-                    ItemsLayout="HorizontalList"
-                    HorizontalScrollBarVisibility="Never">
+                        <CollectionView 
+                            ItemsSource="{Binding Daily5}"
+                            HeightRequest="100"
+                            ItemsLayout="HorizontalList"
+                            HorizontalScrollBarVisibility="Default">
 
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <StackLayout Spacing="4" Padding="10,0" WidthRequest="100">
-                                <Label 
-                                    Text="{Binding Main.Temperature, StringFormat='{0:F1}°'}"
-                                    FontSize="16" 
-                                    FontAttributes="Bold" 
-                                    HorizontalTextAlignment="Center" />
-                                <Label 
-                                    Text="{Binding Weather[0].Description}"
-                                    FontSize="12" 
-                                    HorizontalTextAlignment="Center" 
-                                    TextColor="Gray"
-                                    LineBreakMode="WordWrap"
-                                    MaxLines="2" />
-                                <Label 
-                                    Text="{Binding Wind.Speed, StringFormat='{}{0} м/с'}"
-                                    FontSize="11" 
-                                    HorizontalTextAlignment="Center" 
-                                    TextColor="#555" />
-                                <Label 
-                                    Text="{Binding DateTime, StringFormat='{0:HH:mm}'}"
-                                    FontSize="11" 
-                                    HorizontalTextAlignment="Center" 
-                                    TextColor="#777" />
-                            </StackLayout>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackLayout Spacing="4" Padding="10,0" WidthRequest="90">
+                                        <Label Text="{Binding DateTime, StringFormat='{0:ddd}'}" 
+                                               HorizontalTextAlignment="Center" 
+                                               FontSize="18" 
+                                               TextColor="White"/>
+                                        <Label Text="{Binding Main.Temperature, StringFormat='{0:F0}°'}" 
+                                               HorizontalTextAlignment="Center" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold"
+                                               TextColor="White"/>
+                                        <Label Text="{Binding Weather[0].Description}" 
+                                               HorizontalTextAlignment="Center" 
+                                               FontSize="10" 
+                                               TextColor="LightGray" 
+                                               LineBreakMode="WordWrap" 
+                                               MaxLines="2"/>
+                                    </StackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
 
-                <Label Text="{Binding FeelsLike, Source={x:Reference Page}}" />
-                <Label Text="{Binding Humidity, Source={x:Reference Page}}" />
-                <Label Text="{Binding Pressure, Source={x:Reference Page}}" />
-                <Label Text="{Binding WindSpeed, Source={x:Reference Page}}" />
-                <Label Text="{Binding WindDirection, Source={x:Reference Page}}" />
-                <Label Text="{Binding Sunrise, Source={x:Reference Page}}" />
-                <Label Text="{Binding Sunset, Source={x:Reference Page}}" />
+                <Border StrokeThickness="2"
+                        Stroke="#14FFFFFF"
+                        BackgroundColor="Transparent"
+                        Padding="15"
+                        Margin="0,5,0,10">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16"/>
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Прогноз на 24 часа" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+
+                        <BoxView HeightRequest="2"
+                                 Color="#14FFFFFF"
+                                 Margin="-15,0,-15,0"/>
+
+                        <CollectionView ItemsSource="{Binding Hourly24, Source={x:Reference Page}}"
+                                        HeightRequest="140"
+                                        ItemsLayout="HorizontalList"
+                                        HorizontalScrollBarVisibility="Never">
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackLayout Spacing="4" Padding="10,0" WidthRequest="80" VerticalOptions="Center">
+                                        <Label Text="{Binding Main.Temperature, StringFormat='{0:F1}°'}"
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="White"/>
+                                        <Label Text="{Binding Weather[0].Description}"
+                                               FontSize="12" 
+                                               HorizontalTextAlignment="Center" 
+                                               TextColor="LightGray"
+                                               LineBreakMode="WordWrap"
+                                               MaxLines="2"/>
+                                        <Label Text="{Binding Wind.Speed, StringFormat='{}{0} м/с'}"
+                                               FontSize="11" 
+                                               HorizontalTextAlignment="Center" 
+                                               TextColor="LightGray"/>
+                                        <Label Text="{Binding DateTime, StringFormat='{0:HH:mm}'}"
+                                               FontSize="11" 
+                                               HorizontalTextAlignment="Center" 
+                                               TextColor="LightGray"
+                                                />
+                                    </StackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+                <Grid RowSpacing="10" ColumnSpacing="10" 
+                      RowDefinitions="Auto,Auto,Auto" 
+                      ColumnDefinitions="*,*" 
+                      Margin="0,10">
+
+                    <Border Grid.Row="0" Grid.Column="0"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Ощущается" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding FeelsLike}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Row="0" Grid.Column="1"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Влажность" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding Humidity}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="0"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Давление" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding Pressure}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="1"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Ветер" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding WindSpeed}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Row="2" Grid.Column="0"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Направление" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding WindDirection}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Row="2" Grid.Column="1"
+                            Style="{StaticResource WeatherBlockStyle}">
+                        <VerticalStackLayout Style="{StaticResource WeatherBlockLayoutStyle}">
+                            <Label Text="Закат" 
+                                   Style="{StaticResource WeatherBlockTitleStyle}"/>
+                            <Label Text="{Binding Sunset}" 
+                                   Style="{StaticResource WeatherBlockValueStyle}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
 
             </VerticalStackLayout>
         </ScrollView>
 
-        <Button
-            Text="+"
-            FontSize="40"
-            WidthRequest="60"
-            HeightRequest="60"
-            CornerRadius="8"
-            BackgroundColor="White"
-            BorderColor="gray"
-            BorderWidth="1"
-            HorizontalOptions="End"
-            VerticalOptions="Start"
-            Margin="0,50,20,0"
-            Padding="0"
-            TextColor="Black" 
-                    Clicked="OnAddCityClicked" />
     </Grid>
 </ContentPage>

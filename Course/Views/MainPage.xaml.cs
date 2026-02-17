@@ -10,6 +10,9 @@ namespace Course.Views;
 public partial class MainPage : ContentPage, INotifyPropertyChanged
 {
     private readonly WeatherService _weatherService = new();
+    private const string HOURLY_CACHE_KEY = "hourly_cache";
+    private const string DAILY_CACHE_KEY = "daily_cache";
+    private const string CACHE_TIMESTAMP_KEY = "cache_timestamp";
 
     public string City { get; set; } = "—";
     public string Temp { get; set; } = "—";
@@ -47,7 +50,7 @@ public partial class MainPage : ContentPage, INotifyPropertyChanged
     public MainPage()
     {
         InitializeComponent();
-        BindingContext = this; // Важно!
+        BindingContext = this;
     }
 
     protected override async void OnAppearing()
@@ -63,56 +66,167 @@ public partial class MainPage : ContentPage, INotifyPropertyChanged
             var cityJson = Preferences.Get("current_city", null);
             if (string.IsNullOrEmpty(cityJson))
             {
+                ClearAllData();
                 return;
             }
 
             var city = JsonSerializer.Deserialize<CitySearchResponse>(cityJson);
 
-            var current = await _weatherService.GetCurrentWeatherAsync(city.Latitude, city.Longitude);
-            if (current != null)
-            {
-                City = current.Name;
-                Temp = Math.Round(current.Main.Temp).ToString();
-                Description = current.Weather.FirstOrDefault()?.Description ?? "";
-                FeelsLike = $"Ощущается: {Math.Round(current.Main.Feels_like)}°C";
-                Humidity = $"Влажность: {current.Main.Humidity}%";
-                Pressure = $"Давление: {current.Main.Pressure} гПа";
-                WindSpeed = $"Ветер: {current.Wind.Speed} м/с";
+            LoadCachedForecasts();
 
-                var dirs = new[] { "С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ" };
-                var idx = (int)Math.Round((current.Wind.Deg % 360) / 45.0) % 8;
-                WindDirection = $"Направление: {dirs[idx]}";
-
-                Sunrise = $"Восход: {UnixToTime(current.Sys.Sunrise)}";
-                Sunset = $"Закат: {UnixToTime(current.Sys.Sunset)}";
-
-                OnPropertyChanged(nameof(City));
-                OnPropertyChanged(nameof(Temp));
-                OnPropertyChanged(nameof(Description));
-                OnPropertyChanged(nameof(FeelsLike));
-                OnPropertyChanged(nameof(Humidity));
-                OnPropertyChanged(nameof(Pressure));
-                OnPropertyChanged(nameof(WindSpeed));
-                OnPropertyChanged(nameof(WindDirection));
-                OnPropertyChanged(nameof(Sunrise));
-                OnPropertyChanged(nameof(Sunset));
-            }
-
-            var hourlyList = await _weatherService.GetHourly24ForecastAsync(city.Latitude, city.Longitude);
-            var dailyList = await _weatherService.GetDaily5ForecastAsync(city.Latitude, city.Longitude);
-
-            Hourly24.Clear();
-            foreach (var item in hourlyList)
-                Hourly24.Add(item);
-
-            Daily5.Clear();
-            foreach (var item in dailyList)
-                Daily5.Add(item);
+            await RefreshWeatherData(city);
         }
         catch (Exception ex)
         {
             await DisplayAlert("Ошибка", $"Не удалось загрузить погоду: {ex.Message}", "OK");
         }
+    }
+
+    private void LoadCachedForecasts()
+    {
+        try
+        {
+            var lastCacheTime = Preferences.Get(CACHE_TIMESTAMP_KEY, 0L);
+            var cacheAge = DateTime.Now - DateTime.FromBinary(lastCacheTime);
+
+            if (cacheAge.TotalHours < 1) 
+            {
+                var hourlyJson = Preferences.Get(HOURLY_CACHE_KEY, null);
+                if (!string.IsNullOrEmpty(hourlyJson))
+                {
+                    var hourly = JsonSerializer.Deserialize<List<ForecastItem>>(hourlyJson);
+                    if (hourly != null)
+                    {
+                        Hourly24.Clear();
+                        foreach (var item in hourly)
+                            Hourly24.Add(item);
+                    }
+                }
+
+                var dailyJson = Preferences.Get(DAILY_CACHE_KEY, null);
+                if (!string.IsNullOrEmpty(dailyJson))
+                {
+                    var daily = JsonSerializer.Deserialize<List<ForecastItem>>(dailyJson);
+                    if (daily != null)
+                    {
+                        Daily5.Clear();
+                        foreach (var item in daily)
+                            Daily5.Add(item);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки кэша: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshWeatherData(CitySearchResponse city)
+    {
+        try
+        {
+            var current = await _weatherService.GetCurrentWeatherAsync(city.Latitude, city.Longitude);
+            if (current != null)
+            {
+                UpdateCurrentWeather(current);
+            }
+
+            var (hourlyList, dailyList) = await _weatherService.GetForecastsAsync(city.Latitude, city.Longitude);
+
+            UpdateForecasts(hourlyList, dailyList);
+
+            SaveForecastsToCache(hourlyList, dailyList);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка обновления данных: {ex.Message}");
+        }
+    }
+
+    private void UpdateCurrentWeather(CurrentWeatherResponse current)
+    {
+        City = current.Name;
+        Temp = Math.Round(current.Main.Temp).ToString();
+        Description = current.Weather.FirstOrDefault()?.Description ?? "";
+        FeelsLike = $"{Math.Round(current.Main.Feels_like)}°C";
+        Humidity = $"{current.Main.Humidity}%";
+        Pressure = $"{current.Main.Pressure} гПа";
+        WindSpeed = $"{current.Wind.Speed} м/с";
+
+        var dirs = new[] { "С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ" };
+        var idx = (int)Math.Round((current.Wind.Deg % 360) / 45.0) % 8;
+        WindDirection = dirs[idx];
+
+        Sunrise = UnixToTime(current.Sys.Sunrise);
+        Sunset = UnixToTime(current.Sys.Sunset);
+
+        OnPropertyChanged(nameof(City));
+        OnPropertyChanged(nameof(Temp));
+        OnPropertyChanged(nameof(Description));
+        OnPropertyChanged(nameof(FeelsLike));
+        OnPropertyChanged(nameof(Humidity));
+        OnPropertyChanged(nameof(Pressure));
+        OnPropertyChanged(nameof(WindSpeed));
+        OnPropertyChanged(nameof(WindDirection));
+        OnPropertyChanged(nameof(Sunrise));
+        OnPropertyChanged(nameof(Sunset));
+    }
+
+    private void UpdateForecasts(List<ForecastItem> hourly, List<ForecastItem> daily)
+    {
+        Hourly24.Clear();
+        foreach (var item in hourly)
+            Hourly24.Add(item);
+
+        Daily5.Clear();
+        foreach (var item in daily)
+            Daily5.Add(item);
+    }
+
+    private void SaveForecastsToCache(List<ForecastItem> hourly, List<ForecastItem> daily)
+    {
+        try
+        {
+            var hourlyJson = JsonSerializer.Serialize(hourly);
+            var dailyJson = JsonSerializer.Serialize(daily);
+
+            Preferences.Set(HOURLY_CACHE_KEY, hourlyJson);
+            Preferences.Set(DAILY_CACHE_KEY, dailyJson);
+            Preferences.Set(CACHE_TIMESTAMP_KEY, DateTime.Now.ToBinary());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка сохранения кэша: {ex.Message}");
+        }
+    }
+
+    private void ClearAllData()
+    {
+        City = "—";
+        Temp = "—";
+        Description = "—";
+        FeelsLike = "—";
+        Humidity = "—";
+        Pressure = "—";
+        WindSpeed = "—";
+        WindDirection = "—";
+        Sunrise = "—";
+        Sunset = "—";
+
+        Hourly24.Clear();
+        Daily5.Clear();
+
+        OnPropertyChanged(nameof(City));
+        OnPropertyChanged(nameof(Temp));
+        OnPropertyChanged(nameof(Description));
+        OnPropertyChanged(nameof(FeelsLike));
+        OnPropertyChanged(nameof(Humidity));
+        OnPropertyChanged(nameof(Pressure));
+        OnPropertyChanged(nameof(WindSpeed));
+        OnPropertyChanged(nameof(WindDirection));
+        OnPropertyChanged(nameof(Sunrise));
+        OnPropertyChanged(nameof(Sunset));
     }
 
     private string UnixToTime(long unix)
